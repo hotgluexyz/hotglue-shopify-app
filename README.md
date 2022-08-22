@@ -23,7 +23,7 @@ heroku create -a acme-shopify-app
 You can now deploy the Shopify app [directly to Heroku using Git](https://devcenter.heroku.com/articles/git#deploy-your-code):
 
 ```
-git push heroku main
+git push heroku master
 ```
 
 ### Create your Shopify app
@@ -31,6 +31,9 @@ git push heroku main
 In your [Shopify Partner](https://www.shopify.com/partners) account, you can now add a new app.
 
 Make sure you set the App URL here to your Heroku App URL. Also keep your Shopify api key/secret from the app settings, you will need them in the next step.
+
+Add the Redirect URL: `<heroku app url>/auth/callback`
+For example, `https://hg-demo-shopify-app.herokuapp.com/auth/callback`
 
 ### Setup your environment variables
 
@@ -57,7 +60,7 @@ HG_API_KEY=123
 
 To confirm your Shopify app is working, head to the following url: `<heroku app url>/auth?shop=<shopify app url>`
 
-for example: `https://thawing-inlet-61413.herokuapp.com/auth?shopify=hotglue-testing-1.myshopify.com`
+for example: `https://thawing-inlet-61413.herokuapp.com/auth?shop=hotglue-testing-1.myshopify.com`
 
 If all worked as expected, this should redirect you to authorize and install your Shopify app.
 
