@@ -70,7 +70,9 @@ async function getTenant(tenantId) {
 }
 
 async function getTenantsByPrefix(tenantPrefix) {
-  const url = new URL(`${process.env["HG_API_URL"]}/tenants/${process.env["HG_ENV_ID"]}`);
+  const url = new URL(
+    `${process.env["HG_API_URL"]}/tenants/${process.env["HG_ENV_ID"]}`
+  );
 
   if (tenantPrefix) {
     url.searchParams.set("tenant", tenantPrefix);
@@ -78,7 +80,7 @@ async function getTenantsByPrefix(tenantPrefix) {
 
   const resp = await axios.get(url.toString(), {
     headers: {
-      "x-api-key": apiKey,
+      "x-api-key": process.env["HG_API_KEY"],
     },
   });
 
@@ -90,14 +92,13 @@ async function getTenantsByPrefix(tenantPrefix) {
   for (let i = 0; i < tenants.length; i++) {
     const singleTenant = tenants[i];
 
-    const singleTenantConfigRequest = await axios.get(
-      `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedSources?config=true`,
-      {
-        headers: {
-          "x-api-key": apiKey,
-        },
-      }
-    );
+    const url = `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedSources?config=true`;
+
+    const singleTenantConfigRequest = await axios.get(url, {
+      headers: {
+        "x-api-key": process.env["HG_API_KEY"],
+      },
+    });
 
     let singleTenantConfig = null;
 
@@ -114,11 +115,13 @@ async function getTenantsByPrefix(tenantPrefix) {
 }
 
 const makeDeleteRequest = async (tenant) => {
-  const url = new URL(`${process.env["HG_API_URL"]}/tenant/${process.env["HG_ENV_ID"]}/${tenant}`);
+  const url = new URL(
+    `${process.env["HG_API_URL"]}/tenant/${process.env["HG_ENV_ID"]}/${tenant}`
+  );
 
   await axios.delete(url.toString(), {
     headers: {
-      "x-api-key": apiKey,
+      "x-api-key": process.env["HG_API_KEY"],
     },
   });
 };
@@ -183,6 +186,8 @@ app.prepare().then(async () => {
           // Get the existing tenantId
           tenantId = tenantsWithPrefix[0];
         }
+
+        console.log("Linking tenant...");
 
         // Init config
         const config = {
