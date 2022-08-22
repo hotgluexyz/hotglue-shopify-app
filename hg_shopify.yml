@@ -1,0 +1,17 @@
+authtoken: 24c56REIukYRWhn0lsntg9kIcsz_kgobCsHhJ3ewBYqJBLRK
+region: us
+log_level: info
+# log_format: term
+# log: stdout
+# metadata: '{"serial": "00012xa-33rUtz9", "comment": "For customer alan@example.com"}'
+# socks5_proxy: "socks5://localhost:9150"
+update: false
+update_channel: stable
+# web_addr: localhost:4040
+# web_addr: false
+tunnels:
+  app:
+    proto: http
+    addr: 4000
+    bind_tls: true
+    subdomain: shopify-hotglue
