@@ -103,7 +103,7 @@ async function getTenantsByPrefix(tenantPrefix) {
     let singleTenantConfig = null;
 
     if (singleTenantConfigRequest.data) {
-      singleTenantConfig = singleTenantConfigRequest.data[0].config;
+      singleTenantConfig = singleTenantConfigRequest.data[0]?.config;
 
       if (singleTenantConfig && singleTenantConfig.shop === shopId) {
         filteredTenants.push(singleTenant);
