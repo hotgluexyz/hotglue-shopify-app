@@ -192,6 +192,7 @@ app.prepare().then(async () => {
         // Init config
         const config = {
           api_key: accessToken,
+          access_token: accessToken,
           shop: shopId,
         };
 
