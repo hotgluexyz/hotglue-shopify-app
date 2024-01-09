@@ -161,6 +161,7 @@ app.prepare().then(async () => {
           path: "/webhooks",
           topic: "APP_UNINSTALLED",
           webhookHandler: async (topic, shop, body) => {
+            cl('Delete tenant from shop:', shop);
             delete ACTIVE_SHOPIFY_SHOPS[shop];
             await deleteShopTenants(shop);
           },
@@ -228,10 +229,12 @@ app.prepare().then(async () => {
 
   router.post("/webhooks", async (ctx) => {
     try {
+      cl('Webhook received. Ctx:', ctx);
       await Shopify.Webhooks.Registry.process(ctx.req, ctx.res);
       console.log(`Webhook processed, returned status code 200`);
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
+      ctx.res.statusCode = 200;
     }
   });
 
