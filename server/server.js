@@ -35,6 +35,8 @@ Shopify.Context.initialize({
 // persist this object in your app.
 const ACTIVE_SHOPIFY_SHOPS = {};
 
+const WEBHOOK_TRIGGER_TIMESTAMPS = {};
+
 const shopIdFromShop = (shop) => shop.split(".")[0];
 
 async function linkTenant(tenantId, config) {
@@ -153,7 +155,7 @@ app.prepare().then(async () => {
         // Access token and shop available in ctx.state.shopify
         const { shop, accessToken, scope } = ctx.state.shopify;
         const host = ctx.query.host;
-        ACTIVE_SHOPIFY_SHOPS[shop] = scope;
+        ACTIVE_SHOPIFY_SHOPS[shop] = new Date();
 
         const response = await Shopify.Webhooks.Registry.register({
           shop,
@@ -161,7 +163,12 @@ app.prepare().then(async () => {
           path: "/webhooks",
           topic: "APP_UNINSTALLED",
           webhookHandler: async (topic, shop, body) => {
-            cl('Delete tenant from shop:', shop);
+            cl('Uninstalling for shop', shop);
+            const appInstalledAt = ACTIVE_SHOPIFY_SHOPS[shop];
+            const webhookTriggeredAt = WEBHOOK_TRIGGER_TIMESTAMPS[shop];
+            if (appInstalledAt === undefined || webhookTriggeredAt === undefined || webhookTriggeredAt < appInstalledAt) {
+              cl('Webhook was triggered before the installation. Skipping app uninstall...');
+            }
             delete ACTIVE_SHOPIFY_SHOPS[shop];
             await deleteShopTenants(shop);
           },
@@ -229,12 +236,11 @@ app.prepare().then(async () => {
 
   router.post("/webhooks", async (ctx) => {
     try {
-      cl('Webhook received. Ctx:', ctx);
+      WEBHOOK_TRIGGER_TIMESTAMPS[ctx.req.headers['x-shopify-shop-domain']] = new Date(ctx.req.headers['x-shopify-triggered-at']);
       await Shopify.Webhooks.Registry.process(ctx.req, ctx.res);
       console.log(`Webhook processed, returned status code 200`);
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
-      ctx.res.statusCode = 200;
     }
   });
 
