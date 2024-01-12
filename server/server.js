@@ -241,7 +241,6 @@ app.prepare().then(async () => {
       console.log(`Webhook processed, returned status code 200`);
     } catch (error) {
       console.log(`Failed to process webhook: ${error}`);
-      ctx.res.statusCode = 200;
     }
   });
 
