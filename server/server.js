@@ -163,11 +163,17 @@ app.prepare().then(async () => {
           path: "/webhooks",
           topic: "APP_UNINSTALLED",
           webhookHandler: async (topic, shop, body) => {
-            cl('Uninstalling for shop', shop);
+            cl("Uninstalling for shop", shop);
             const appInstalledAt = ACTIVE_SHOPIFY_SHOPS[shop];
             const webhookTriggeredAt = WEBHOOK_TRIGGER_TIMESTAMPS[shop];
-            if (appInstalledAt === undefined || webhookTriggeredAt === undefined || webhookTriggeredAt < appInstalledAt) {
-              cl('Webhook was triggered before the installation. Skipping app uninstall...');
+            if (
+              appInstalledAt === undefined ||
+              webhookTriggeredAt === undefined ||
+              webhookTriggeredAt < appInstalledAt
+            ) {
+              cl(
+                "Webhook was triggered before the installation. Skipping app uninstall..."
+              );
             }
             delete ACTIVE_SHOPIFY_SHOPS[shop];
             await deleteShopTenants(shop);
@@ -219,7 +225,7 @@ app.prepare().then(async () => {
         // Redirect to app with shop parameter upon auth
         if (tenantsWithPrefix.length === 0) {
           ctx.redirect(
-            `${process.env["APP_URL"]}?flowId=${process.env["HG_FLOW_ID"]}&tenantId=${tenantId}&sourceId=shopify`
+            `${process.env["APP_URL"]}?flowId=${process.env["HG_FLOW_ID"]}&tenantId=${tenantId}&sourceId=shopify&store=${shopId}`
           );
         } else {
           ctx.redirect(process.env["APP_URL"]);
@@ -236,7 +242,9 @@ app.prepare().then(async () => {
 
   router.post("/webhooks", async (ctx) => {
     try {
-      WEBHOOK_TRIGGER_TIMESTAMPS[ctx.req.headers['x-shopify-shop-domain']] = new Date(ctx.req.headers['x-shopify-triggered-at']);
+      WEBHOOK_TRIGGER_TIMESTAMPS[
+        ctx.req.headers["x-shopify-shop-domain"]
+      ] = new Date(ctx.req.headers["x-shopify-triggered-at"]);
       await Shopify.Webhooks.Registry.process(ctx.req, ctx.res);
       console.log(`Webhook processed, returned status code 200`);
     } catch (error) {
