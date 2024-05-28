@@ -37,7 +37,45 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 
 const WEBHOOK_TRIGGER_TIMESTAMPS = {};
 
+const LINKED_FLOWS = {};
+
 const shopIdFromShop = (shop) => shop.split(".")[0];
+
+async function getAllLinkedFlows() {
+  // In order to get all linked flows, we're making this request using "default" as "user_id"
+  const url = new URL(
+    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/flows/linked`
+  );
+
+  url.searchParams.set("user_id", "default");
+
+  const resp = await axios.get(url.toString(), {
+    headers: {
+      "x-api-key": process.env["HG_API_KEY"],
+    },
+  });
+
+  return resp.data;
+}
+
+async function getFlowVersion() {
+  const flowId = process.env["HG_FLOW_ID"];
+
+  if (!LINKED_FLOWS[flowId]) {
+    // Get all linked flows
+    const allLinkedFlows = await getAllLinkedFlows();
+
+    // If the response is "truthy" and it's an array, populate the "LINKED_FLOWS" object
+    if (allLinkedFlows && Array.isArray(allLinkedFlows)) {
+      allLinkedFlows.forEach((flow) => {
+        LINKED_FLOWS[flow.id] = flow;
+      });
+    }
+  }
+
+  // Return the linked flow version. If it doesn't exist, return 1 by default
+  return LINKED_FLOWS[flowId]?.version ?? 1;
+}
 
 async function linkTenant(tenantId, config) {
   const payload = {
@@ -47,26 +85,29 @@ async function linkTenant(tenantId, config) {
     },
   };
 
-  const resp = await axios.post(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`,
-    payload,
-    {
-      headers: {
-        "x-api-key": process.env["HG_API_KEY"],
-      },
-    }
-  );
+  const url =
+    (await getFlowVersion()) === 2
+      ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors`
+      : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`;
+
+  const resp = await axios.post(url, payload, {
+    headers: {
+      "x-api-key": process.env["HG_API_KEY"],
+    },
+  });
 }
 
 async function getTenant(tenantId) {
-  const resp = await axios.get(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config`,
-    {
-      headers: {
-        "x-api-key": process.env["HG_API_KEY"],
-      },
-    }
-  );
+  const url =
+    (await getFlowVersion()) === 2
+      ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config`
+      : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config`;
+
+  const resp = await axios.get(url, {
+    headers: {
+      "x-api-key": process.env["HG_API_KEY"],
+    },
+  });
 
   return resp.data;
 }
@@ -94,7 +135,10 @@ async function getTenantsByPrefix(tenantPrefix) {
   for (let i = 0; i < tenants.length; i++) {
     const singleTenant = tenants[i];
 
-    const url = `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedSources?config=true`;
+    const url =
+      (await getFlowVersion()) === 2
+        ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config=true`
+        : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config=true`;
 
     const singleTenantConfigRequest = await axios.get(url, {
       headers: {
