@@ -37,23 +37,19 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 
 const WEBHOOK_TRIGGER_TIMESTAMPS = {};
 
-const LINKED_FLOWS = {};
+const SUPPORTED_FLOWS = {};
 
 const shopIdFromShop = (shop) => shop.split(".")[0];
 
-async function getAllLinkedFlows() {
-  // In order to get all linked flows, we're making this request using "default" as "user_id"
-  const url = new URL(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/flows/linked`
+async function getAllSupportedFlows() {
+  const resp = await axios.get(
+    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/flows/supported`,
+    {
+      headers: {
+        "x-api-key": process.env["HG_API_KEY"],
+      },
+    }
   );
-
-  url.searchParams.set("user_id", "default");
-
-  const resp = await axios.get(url.toString(), {
-    headers: {
-      "x-api-key": process.env["HG_API_KEY"],
-    },
-  });
 
   return resp.data;
 }
@@ -61,20 +57,20 @@ async function getAllLinkedFlows() {
 async function getFlowVersion() {
   const flowId = process.env["HG_FLOW_ID"];
 
-  if (!LINKED_FLOWS[flowId]) {
-    // Get all linked flows
-    const allLinkedFlows = await getAllLinkedFlows();
+  if (!SUPPORTED_FLOWS[flowId]) {
+    // Get all supported flows
+    const allSupportedFlows = await getAllSupportedFlows();
 
-    // If the response is "truthy" and it's an array, populate the "LINKED_FLOWS" object
-    if (allLinkedFlows && Array.isArray(allLinkedFlows)) {
-      allLinkedFlows.forEach((flow) => {
-        LINKED_FLOWS[flow.id] = flow;
+    // If the response is "truthy" and it's an array, populate the "SUPPORTED_FLOWS" object
+    if (allSupportedFlows && Array.isArray(allSupportedFlows)) {
+      allSupportedFlows.forEach((flow) => {
+        SUPPORTED_FLOWS[flow.id] = flow;
       });
     }
   }
 
   // Return the linked flow version. If it doesn't exist, return 1 by default
-  return LINKED_FLOWS[flowId]?.version ?? 1;
+  return SUPPORTED_FLOWS[flowId]?.version ?? 1;
 }
 
 async function linkTenant(tenantId, config) {
