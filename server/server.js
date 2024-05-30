@@ -37,40 +37,10 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 
 const WEBHOOK_TRIGGER_TIMESTAMPS = {};
 
-const SUPPORTED_FLOWS = {};
-
 const shopIdFromShop = (shop) => shop.split(".")[0];
 
-async function getAllSupportedFlows() {
-  const resp = await axios.get(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/flows/supported`,
-    {
-      headers: {
-        "x-api-key": process.env["HG_API_KEY"],
-      },
-    }
-  );
-
-  return resp.data;
-}
-
-async function getFlowVersion() {
-  const flowId = process.env["HG_FLOW_ID"];
-
-  if (!SUPPORTED_FLOWS[flowId]) {
-    // Get all supported flows
-    const allSupportedFlows = await getAllSupportedFlows();
-
-    // If the response is "truthy" and it's an array, populate the "SUPPORTED_FLOWS" object
-    if (allSupportedFlows && Array.isArray(allSupportedFlows)) {
-      allSupportedFlows.forEach((flow) => {
-        SUPPORTED_FLOWS[flow.id] = flow;
-      });
-    }
-  }
-
-  // Return the linked flow version. If it doesn't exist, return 1 by default
-  return SUPPORTED_FLOWS[flowId]?.version ?? 1;
+function getFlowVersion() {
+  return process.env["HG_FLOW_VERSION"] === "2" ? 2 : 1;
 }
 
 async function linkTenant(tenantId, config) {
@@ -82,7 +52,7 @@ async function linkTenant(tenantId, config) {
   };
 
   const url =
-    (await getFlowVersion()) === 2
+    getFlowVersion() === 2
       ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors`
       : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`;
 
@@ -95,7 +65,7 @@ async function linkTenant(tenantId, config) {
 
 async function getTenant(tenantId) {
   const url =
-    (await getFlowVersion()) === 2
+    getFlowVersion() === 2
       ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config`
       : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config`;
 
@@ -132,7 +102,7 @@ async function getTenantsByPrefix(tenantPrefix) {
     const singleTenant = tenants[i];
 
     const url =
-      (await getFlowVersion()) === 2
+      getFlowVersion() === 2
         ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config=true`
         : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config=true`;
 
