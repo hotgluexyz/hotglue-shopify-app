@@ -39,6 +39,10 @@ const WEBHOOK_TRIGGER_TIMESTAMPS = {};
 
 const shopIdFromShop = (shop) => shop.split(".")[0];
 
+function getFlowVersion() {
+  return process.env["HG_FLOW_VERSION"] === "2" ? 2 : 1;
+}
+
 async function linkTenant(tenantId, config) {
   const payload = {
     source: {
@@ -47,26 +51,29 @@ async function linkTenant(tenantId, config) {
     },
   };
 
-  const resp = await axios.post(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`,
-    payload,
-    {
-      headers: {
-        "x-api-key": process.env["HG_API_KEY"],
-      },
-    }
-  );
+  const url =
+    getFlowVersion() === 2
+      ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors`
+      : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`;
+
+  const resp = await axios.post(url, payload, {
+    headers: {
+      "x-api-key": process.env["HG_API_KEY"],
+    },
+  });
 }
 
 async function getTenant(tenantId) {
-  const resp = await axios.get(
-    `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config`,
-    {
-      headers: {
-        "x-api-key": process.env["HG_API_KEY"],
-      },
-    }
-  );
+  const url =
+    getFlowVersion() === 2
+      ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config`
+      : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config`;
+
+  const resp = await axios.get(url, {
+    headers: {
+      "x-api-key": process.env["HG_API_KEY"],
+    },
+  });
 
   return resp.data;
 }
@@ -94,7 +101,10 @@ async function getTenantsByPrefix(tenantPrefix) {
   for (let i = 0; i < tenants.length; i++) {
     const singleTenant = tenants[i];
 
-    const url = `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedSources?config=true`;
+    const url =
+      getFlowVersion() === 2
+        ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config=true`
+        : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config=true`;
 
     const singleTenantConfigRequest = await axios.get(url, {
       headers: {
