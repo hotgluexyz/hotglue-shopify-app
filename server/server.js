@@ -103,8 +103,8 @@ async function getTenantsByPrefix(tenantPrefix) {
 
     const url =
       getFlowVersion() === 2
-        ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors?config=true`
-        : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources?config=true`;
+        ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedConnectors?config=true`
+        : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${singleTenant}/linkedSources?config=true`;
 
     const singleTenantConfigRequest = await axios.get(url, {
       headers: {
