@@ -233,7 +233,10 @@ app.prepare().then(async () => {
         }
 
         // Redirect to app with shop parameter upon auth
-        if (tenantsWithPrefix.length === 0) {
+        if (
+          tenantsWithPrefix.length === 0 ||
+          process.env["ALWAYS_REDIRECT"] == "true"
+        ) {
           ctx.redirect(
             `${process.env["APP_URL"]}?flowId=${process.env["HG_FLOW_ID"]}&tenantId=${tenantId}&sourceId=shopify&store=${shopId}`
           );
