@@ -44,17 +44,25 @@ function getFlowVersion() {
 }
 
 async function linkTenant(tenantId, config) {
-  const payload = {
-    source: {
-      tap: "shopify",
-      config,
-    },
-  };
+  const isV2Flow = getFlowVersion() === 2;
 
-  const url =
-    getFlowVersion() === 2
-      ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors`
-      : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`;
+  const payload = isV2Flow
+    ? {
+        connector: {
+          id: "shopify",
+          config,
+        },
+      }
+    : {
+        source: {
+          tap: "shopify",
+          config,
+        },
+      };
+
+  const url = isV2Flow
+    ? `${process.env["HG_API_URL"]}/v2/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedConnectors`
+    : `${process.env["HG_API_URL"]}/${process.env["HG_ENV_ID"]}/${process.env["HG_FLOW_ID"]}/${tenantId}/linkedSources`;
 
   const resp = await axios.post(url, payload, {
     headers: {
