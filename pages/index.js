@@ -14,8 +14,16 @@ import { ExternalMinor } from "@shopify/polaris-icons";
 
 const Index = () => {
   useEffect(() => {
+    const currentUrl = new URL(window.location);
+    const url = new URL(process.env["APP_URL"]);
+
+    if (currentUrl.searchParams.has("shop")) {
+      const shopId = currentUrl.searchParams.get("shop").split(".")[0];
+      url.searchParams.set("store", shopId);
+    }
+
     // Automatically redirect to the app
-    window.location = process.env["APP_URL"];
+    window.location = url.toString();
   }, []);
 
   return (
