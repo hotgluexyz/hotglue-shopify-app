@@ -289,8 +289,10 @@ app.prepare().then(async () => {
 
     // This shop hasn't been seen yet, go through OAuth to create a session
     if (ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      cl("Redirecting to /auth...");
       ctx.redirect(`/auth?shop=${shop}`);
     } else {
+      cl("Handling request...");
       await handleRequest(ctx);
     }
   });
