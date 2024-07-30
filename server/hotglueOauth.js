@@ -319,5 +319,5 @@ exports.ShopifyOAuth = ShopifyOAuth;
  * @param session Current session
  */
 function validQuery(query, session) {
-  return false;
+  return true;
 }
